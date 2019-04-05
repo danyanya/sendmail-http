@@ -1,5 +1,5 @@
 #!/bin/bash
 
-SERVER_ADDR=${SERVER_ADDR:-:1001} /sendmail-http &
+/etc/postfix/postfix-service.sh start &
 
-/opt/monit/bin/monit-start.sh
+SERVER_ADDR=${SERVER_ADDR:-:1001} /sendmail-http
