@@ -1,5 +1,7 @@
 FROM interlegis/alpine-postfix 
 
+LABEL maintainer="Danya Sliusar <danya.brain@gmail.com>"
+
 ADD ./bin/sendmail-http /
 ADD start.sh /
 
