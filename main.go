@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -15,13 +16,27 @@ type mailReq struct {
 	To      string `query:"to"`
 	Subject string `query:"subject"`
 	Body    string `query:"body"`
+	File    string `query:"file"`
 }
 
 func callSendmail(req mailReq) error {
-	line := fmt.Sprintf("From: %s\\nTo: %s\\nSubject: %s\\n\\n%s",
+	var line = fmt.Sprintf("From: %s\\nTo: %s\\nSubject: %s\\n\\n%s",
 		req.From, req.To, req.Subject, req.Body)
-	c1 := exec.Command("echo", "-e", line)
-	c2 := exec.Command("sendmail", req.To)
+	var script = fmt.Sprintf("echo -e '%s'", line)
+
+	fmt.Println(script)
+	if len(req.File) > 0 {
+		if _, err := os.Stat(req.File); err == nil {
+			script = fmt.Sprintf("%s ; uuencode %s %s", script,
+				req.File, path.Base(req.File))
+		} else {
+			fmt.Println(err.Error())
+		}
+	}
+
+	fmt.Println(script)
+	var c1 = exec.Command("/bin/sh", "-c", script)
+	var c2 = exec.Command("sendmail", req.To)
 	c2.Stdin, _ = c1.StdoutPipe()
 	c2.Stdout = os.Stdout
 	_ = c2.Start()
@@ -37,27 +52,32 @@ func main() {
 		panic("Server address must not be empty")
 	}
 
-	e := echo.New()
+	var e = echo.New()
 	e.Use(middleware.Recover())
 
-	api_group := e.Group("/api")
+	var apiGroup = e.Group("/api")
 
-	api_group.GET("/sendmail", func(c echo.Context) error {
+	// GET HTTP endpoint to send Emails with sendmail
+	apiGroup.GET("/sendmail", func(c echo.Context) error {
 
-		req := mailReq{}
+		var req = mailReq{}
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{
-				"status": "error",
-				"desc":   err.Error(),
-			})
+			return c.JSON(http.StatusBadRequest,
+				map[string]string{
+					"status": "error",
+					"desc":   err.Error(),
+				},
+			)
 		}
 		callSendmail(req)
-		return c.JSON(http.StatusOK, map[string]string{
-			"status": "ok",
-		})
+		return c.JSON(http.StatusOK,
+			map[string]string{
+				"status": "ok",
+			},
+		)
 	})
 
-	err := e.Start(serverAddr)
+	var err = e.Start(serverAddr)
 	if err != nil {
 		panic(err.Error())
 	}

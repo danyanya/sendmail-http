@@ -1,7 +1,7 @@
 version: '3.6'
 services:
     postfix-http:
-        image: danyanya/postfix-http
+        image: danyanya/sendmail-http:latest
         entrypoint: /start.sh
         environment:
           - SERVER_ADDR=:1001
