@@ -2,7 +2,7 @@ FROM interlegis/alpine-postfix
 
 LABEL maintainer="Danya Sliusar <danya.brain@gmail.com>"
 
-RUN apk add -U --no-cache sharutils
+RUN apk add -U --no-cache sharutils mutt
 
 ADD ./bin/sendmail-http /
 ADD start.sh /

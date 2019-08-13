@@ -45,6 +45,30 @@ func callSendmail(req mailReq) error {
 	return nil
 }
 
+func callSendmailMutt(req mailReq) error {
+
+	var args = []string{"-s", req.Subject}
+	if len(req.File) > 0 {
+		if _, err := os.Stat(req.File); err == nil {
+			args = append(args, []string{"-a", req.File}...)
+		} else {
+			fmt.Println(err.Error())
+		}
+	}
+	fmt.Println(args)
+	args = append(args, []string{"--", req.To}...)
+	var c1 = exec.Command("echo", "-e", req.Body)
+	var c2 = exec.Command("mutt", args...)
+	c2.Env = os.Environ()
+	c2.Env = append(c2.Env, fmt.Sprintf("EMAIL='%s'", req.From))
+	c2.Stdin, _ = c1.StdoutPipe()
+	c2.Stdout = os.Stdout
+	_ = c2.Start()
+	_ = c1.Run()
+	_ = c2.Wait()
+	return nil
+}
+
 func main() {
 
 	var serverAddr = os.Getenv("SERVER_ADDR")
@@ -70,6 +94,25 @@ func main() {
 			)
 		}
 		callSendmail(req)
+		return c.JSON(http.StatusOK,
+			map[string]string{
+				"status": "ok",
+			},
+		)
+	})
+
+	apiGroup.GET("/sendmutt", func(c echo.Context) error {
+
+		var req = mailReq{}
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(http.StatusBadRequest,
+				map[string]string{
+					"status": "error",
+					"desc":   err.Error(),
+				},
+			)
+		}
+		callSendmailMutt(req)
 		return c.JSON(http.StatusOK,
 			map[string]string{
 				"status": "ok",
