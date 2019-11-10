@@ -81,7 +81,7 @@ func main() {
 
 	var apiGroup = e.Group("/api")
 
-	// GET HTTP endpoint to send Emails with sendmail
+	// GET HTTP endpoint to send emails via sendmail
 	apiGroup.GET("/sendmail", func(c echo.Context) error {
 
 		var req = mailReq{}
@@ -101,8 +101,8 @@ func main() {
 		)
 	})
 
+	// GET HTTP endpoint to send emails via mutt
 	apiGroup.GET("/sendmutt", func(c echo.Context) error {
-
 		var req = mailReq{}
 		if err := c.Bind(&req); err != nil {
 			return c.JSON(http.StatusBadRequest,
@@ -120,8 +120,7 @@ func main() {
 		)
 	})
 
-	var err = e.Start(serverAddr)
-	if err != nil {
+	if err := e.Start(serverAddr); err != nil {
 		panic(err.Error())
 	}
 

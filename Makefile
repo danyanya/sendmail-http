@@ -1,6 +1,5 @@
 APP_NAME=sendmail-http
 
-
 all: build
 
 build:

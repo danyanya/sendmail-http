@@ -1,4 +1,4 @@
-FROM interlegis/alpine-postfix 
+FROM interlegis/alpine-postfix:3.3.0 
 
 LABEL maintainer="Danya Sliusar <danya.brain@gmail.com>"
 
