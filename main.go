@@ -60,7 +60,7 @@ func callSendmailMutt(req mailReq) error {
 	var c1 = exec.Command("echo", "-e", req.Body)
 	var c2 = exec.Command("mutt", args...)
 	c2.Env = os.Environ()
-	c2.Env = append(c2.Env, fmt.Sprintf("EMAIL='%s'", req.From))
+	c2.Env = append(c2.Env, fmt.Sprintf("EMAIL=%s", req.From))
 	c2.Stdin, _ = c1.StdoutPipe()
 	c2.Stdout = os.Stdout
 	_ = c2.Start()
